@@ -38,6 +38,7 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
+// ServeWebSocket reads the event from ?event_id= and subscribes the connection to it.
 func (h *Handler) ServeWebSocket(c *gin.Context) {
 	eventID, err := uuid.Parse(c.Query("event_id"))
 	if err != nil {
@@ -47,6 +48,12 @@ func (h *Handler) ServeWebSocket(c *gin.Context) {
 		return
 	}
 
+	h.Serve(c, eventID)
+}
+
+// Serve upgrades the request to a WebSocket and subscribes the connection to eventID.
+// The caller has already checked that the event exists and that the caller may follow it.
+func (h *Handler) Serve(c *gin.Context, eventID uuid.UUID) {
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		return
