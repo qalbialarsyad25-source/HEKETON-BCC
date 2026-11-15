@@ -9,7 +9,6 @@ import (
 	"main/internal/modules/user/domain"
 	"main/internal/shared/authz"
 	"main/internal/shared/pagination"
-	shared "main/internal/shared/pagination"
 	"main/internal/shared/ports/hasher"
 
 	"github.com/google/uuid"
@@ -42,7 +41,7 @@ func normalizeEmail(email string) string {
 	return strings.ToLower(strings.TrimSpace(email))
 }
 
-func (uc UserUseCase) List(ctx context.Context, page shared.Pagination) (*[]domain.User, int, error) {
+func (uc UserUseCase) List(ctx context.Context, page pagination.Pagination) (*[]domain.User, int, error) {
 	return uc.repo.List(ctx, page)
 }
 

@@ -17,7 +17,6 @@ import (
 )
 
 func openDB(t *testing.T) *gorm.DB {
-	t.Helper()
 	cfg, err := config.Load()
 	require.NoError(t, err)
 
@@ -29,7 +28,6 @@ func openDB(t *testing.T) *gorm.DB {
 }
 
 func newAnnouncement(t *testing.T, db *gorm.DB) *domain.Announcement {
-	t.Helper()
 
 	id := uuid.New()
 
