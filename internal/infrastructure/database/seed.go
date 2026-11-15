@@ -157,16 +157,18 @@ func SeedInitialData(db *gorm.DB) error {
 		event := eventsByID[seedID("event", r.event)]
 		created := event.CreatedAt.Add(48*time.Hour + time.Duration(i)*time.Hour)
 		updated := created
+
 		switch r.status {
 		case RegistrationStatusCheckedIn:
 			updated = event.Date.Add(15 * time.Minute)
 		case RegistrationStatusCancelled:
 			updated = created.Add(24 * time.Hour)
 		}
+
 		registrationRows = append(registrationRows, Registration{
-			ID:        seedID("registration", r.event+":"+r.user),
-			EventID:   event.ID,
-			UserID:    seedID("user", r.user),
+			ID:        seedID("registration", r.event+":"+r.user).String(),
+			EventID:   event.ID.String(),
+			UserID:    seedID("user", r.user).String(),
 			Status:    r.status,
 			CreatedAt: created,
 			UpdatedAt: updated,

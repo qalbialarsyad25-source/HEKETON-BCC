@@ -79,17 +79,15 @@ type Invitation struct {
 }
 
 type Registration struct {
-	ID        uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-	EventID   uuid.UUID `gorm:"type:uuid;not null;uniqueIndex:idx_registrations_event_user"`
-	UserID    uuid.UUID `gorm:"type:uuid;not null;uniqueIndex:idx_registrations_event_user"`
-	Status    string    `gorm:"not null;default:REGISTERED"`
-	CreatedAt time.Time `gorm:"autoCreateTime;default:CURRENT_TIMESTAMP"`
-	UpdatedAt time.Time `gorm:"autoUpdateTime;default:CURRENT_TIMESTAMP"`
-
-	Event Event `gorm:"foreignKey:EventID;constraint:OnDelete:CASCADE"`
-	User  User  `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
+	ID        string `gorm:"type:uuid;primaryKey"`
+	EventID   string `gorm:"type:uuid;not null;uniqueIndex:idx_event_user_reg"`
+	UserID    string `gorm:"type:uuid;not null;uniqueIndex:idx_event_user_reg"`
+	Status    string `gorm:"type:varchar(20);not null;default:'REGISTERED'"`
+	User      User   `gorm:"foreignKey:UserID"`
+	Event     Event  `gorm:"foreignKey:EventID"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
-
 type Committee struct {
 	ID        uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 	EventID   uuid.UUID `gorm:"type:uuid;not null;uniqueIndex:idx_committees_event_user"`
