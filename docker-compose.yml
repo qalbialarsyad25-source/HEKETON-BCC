@@ -1,0 +1,48 @@
+services:
+    app:
+        image: ghcr.io/${IMAGE_NAME:-local/go-starter}:${IMAGE_TAG:-latest}
+        pull_policy: missing
+        build: .
+        container_name: event-ops-app
+        restart: unless-stopped
+        env_file: .env
+        environment:
+            APP_PORT: "8080"
+            DB_HOST: postgres
+            DB_PORT: "5432"
+            LOG_FILE_PATH: logs/app.log
+        ports:
+            - "${APP_PORT:-8080}:8080"
+        volumes:
+            - app_logs:/app/logs
+        depends_on:
+            postgres:
+                condition: service_healthy
+        healthcheck:
+            test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8080/health || exit 1"]
+            interval: 5s
+            timeout: 5s
+            retries: 10
+            start_period: 30s
+
+    postgres:
+        image: postgres:17-alpine
+        container_name: ${APP_NAME:-go-starter}-postgres
+        restart: unless-stopped
+        environment:
+            POSTGRES_USER: ${DB_USER:-postgres}
+            POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+            POSTGRES_DB: ${DB_NAME:-app}
+        ports:
+            - "127.0.0.1:${POSTGRES_HOST_PORT:-5432}:5432"
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+            interval: 5s
+            timeout: 5s
+            retries: 10
+
+volumes:
+    app_logs:
+    postgres_data:

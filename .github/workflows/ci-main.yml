@@ -1,0 +1,215 @@
+name: CI
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+    workflow_dispatch:
+
+concurrency:
+    group: ci-${{ github.ref }}
+    cancel-in-progress: true
+
+permissions:
+    contents: read
+
+jobs:
+    lint:
+        name: Golang Linting
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v7
+
+            - name: Set up Go
+              uses: actions/setup-go@v7
+              with:
+                  go-version-file: go.mod
+
+            - name: Lint code
+              uses: golangci/golangci-lint-action@v9
+              with:
+                  version: v2.13.2
+                  args: --build-tags=integration,e2e
+
+    test:
+        name: Golang Test
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v7
+
+            - name: Set up Go
+              uses: actions/setup-go@v7
+              with:
+                  go-version-file: go.mod
+
+            - name: Vet
+              run: go vet ./...
+
+            - name: Build
+              run: go build ./...
+
+            - name: Unit tests
+              run: go test -race -count=1 -coverprofile=coverage.out ./...
+
+            - name: Coverage summary
+              run: go tool cover -func=coverage.out | tail -n 1
+
+            - name: Upload coverage artifact
+              uses: actions/upload-artifact@v7
+              with:
+                  name: coverage
+                  path: coverage.out
+                  if-no-files-found: error
+
+    e2e:
+        name: Integration and E2E Test
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
+        env:
+            APP_MODE: TEST
+            DB_NAME: app_test
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v7
+
+            - name: Set up Go
+              uses: actions/setup-go@v7
+              with:
+                  go-version-file: go.mod
+
+            - name: Create .env
+              run: cp .env.example .env
+
+            - name: Start Postgres
+              run: docker compose up -d --wait postgres
+
+            - name: Integration tests
+              run: go test -tags=integration -count=1 ./internal/...
+
+            - name: End-to-end tests
+              run: go test -tags=e2e -count=1 ./tests/e2e/...
+
+            - name: Service logs
+              if: failure()
+              run: docker compose logs --no-color
+
+    build-and-push:
+        name: Build and Push Docker Image
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
+        needs: [lint, test, e2e]
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        permissions:
+            contents: read
+            packages: write
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v7
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v4
+
+            - name: Log in to GitHub Container Registry
+              uses: docker/login-action@v4
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Docker metadata
+              id: meta
+              uses: docker/metadata-action@v6
+              with:
+                  images: ghcr.io/${{ github.repository }}
+                  tags: |
+                      type=sha,format=long,prefix=
+                      type=raw,value=latest
+
+            - name: Build and push
+              uses: docker/build-push-action@v7
+              with:
+                  context: .
+                  push: true
+                  tags: ${{ steps.meta.outputs.tags }}
+                  labels: ${{ steps.meta.outputs.labels }}
+                  cache-from: type=gha
+                  cache-to: type=gha,mode=max
+
+    deploy:
+        name: Deploy to Server
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        needs: build-and-push
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        permissions:
+            contents: read
+            packages: read
+        steps:
+            - name: Check deploy secrets
+              id: gate
+              env:
+                  SSH_HOST: ${{ secrets.SSH_HOST }}
+              run: |
+                  if [ -n "$SSH_HOST" ]; then
+                    echo "enabled=true" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "enabled=false" >> "$GITHUB_OUTPUT"
+                    echo "::notice title=Deploy skipped::Add the SSH_HOST, SSH_USER and SSH_KEY secrets (optional: SSH_PORT, SSH_PROXY_*) to deploy to the VM."
+                  fi
+
+            - name: Checkout code
+              if: steps.gate.outputs.enabled == 'true'
+              uses: actions/checkout@v7
+
+            - name: Copy compose file
+              if: steps.gate.outputs.enabled == 'true'
+              uses: appleboy/scp-action@v1.0.0
+              with:
+                  host: ${{ secrets.SSH_HOST }}
+                  username: ${{ secrets.SSH_USER }}
+                  key: ${{ secrets.SSH_KEY }}
+                  port: ${{ secrets.SSH_PORT || '22' }}
+                  proxy_host: ${{ secrets.SSH_PROXY_HOST }}
+                  proxy_username: ${{ secrets.SSH_PROXY_USER }}
+                  proxy_key: ${{ secrets.SSH_PROXY_KEY }}
+                  proxy_port: ${{ secrets.SSH_PROXY_PORT || '22' }}
+                  source: docker-compose.yml
+                  target: backend
+                  overwrite: true
+
+            - name: Deploy via SSH
+              if: steps.gate.outputs.enabled == 'true'
+              uses: appleboy/ssh-action@v1.2.5
+              env:
+                  IMAGE_NAME: ${{ github.repository }}
+                  IMAGE_TAG: ${{ github.sha }}
+                  GHCR_USERNAME: ${{ github.actor }}
+                  GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              with:
+                  host: ${{ secrets.SSH_HOST }}
+                  username: ${{ secrets.SSH_USER }}
+                  key: ${{ secrets.SSH_KEY }}
+                  port: ${{ secrets.SSH_PORT || '22' }}
+                  proxy_host: ${{ secrets.SSH_PROXY_HOST }}
+                  proxy_username: ${{ secrets.SSH_PROXY_USER }}
+                  proxy_key: ${{ secrets.SSH_PROXY_KEY }}
+                  proxy_port: ${{ secrets.SSH_PROXY_PORT || '22' }}
+                  envs: IMAGE_NAME,IMAGE_TAG,GHCR_USERNAME,GHCR_TOKEN
+                  script: |
+                      set -e
+                      cd "$HOME/backend"
+
+                      echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
+
+                      IMAGE_NAME="$(printf '%s' "$IMAGE_NAME" | tr '[:upper:]' '[:lower:]')"
+                      export IMAGE_NAME
+                      export IMAGE_TAG
+
+                      docker compose pull app
+                      docker compose up -d --remove-orphans --wait
+                      docker image prune -f
+                      docker logout ghcr.io
