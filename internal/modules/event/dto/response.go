@@ -1,10 +1,9 @@
 package dto
 
 import (
-	"time"
-
 	"main/internal/modules/event/domain"
-	"main/internal/modules/event/pagination"
+	"main/internal/shared/pagination"
+	"time"
 )
 
 type EventResponse struct {
