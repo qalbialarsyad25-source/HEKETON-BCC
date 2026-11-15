@@ -6,9 +6,11 @@ import (
 
 	"main/internal/config"
 	"main/internal/http/middleware"
+	"main/internal/http/validator"
 	authcontainer "main/internal/modules/auth/container"
 	eventcontainer "main/internal/modules/event/container"
 	invitationcontainer "main/internal/modules/invitation/container"
+	sessioncontainer "main/internal/modules/session/container"
 	usercontainer "main/internal/modules/user/container"
 	"main/internal/shared/ports"
 
@@ -26,9 +28,15 @@ func SetupRouter(cfg *config.Config, adapters *ports.Adapters, db *gorm.DB) *gin
 		gin.SetMode(gin.DebugMode)
 	}
 
+	// Validation errors name fields the way the client sent them (json tags).
+	validator.Setup()
+
 	router := gin.New()
 	router.HandleMethodNotAllowed = true
 	router.RedirectTrailingSlash = false
+
+	// Turns every error a handler attaches with c.Error into a JSON response.
+	router.Use(middleware.ErrorHandler(adapters.Logger))
 
 	if err := router.SetTrustedProxies(cfg.HTTP.TrustedProxies); err != nil {
 		panic(fmt.Sprintf("TRUSTED_PROXIES: %v", err))
@@ -51,7 +59,10 @@ func SetupRouter(cfg *config.Config, adapters *ports.Adapters, db *gorm.DB) *gin
 	eventContainer := eventcontainer.NewEventContainer(db, adapters)
 	eventContainer.Routes.RegisterRoutes(api)
 
-	sessionContainer := invitationcontainer.NewInvitationContainer(db, adapters)
+	invitationContainer := invitationcontainer.NewInvitationContainer(db, adapters)
+	invitationContainer.Routes.RegisterRoutes(api)
+
+	sessionContainer := sessioncontainer.NewSessionContainer(db, adapters)
 	sessionContainer.Routes.RegisterRoutes(api)
 
 	router.NoRoute(func(c *gin.Context) {
