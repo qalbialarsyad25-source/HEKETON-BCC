@@ -15,6 +15,8 @@ import (
 
 type Config struct {
 	App      *AppConfig
+	Server   *ServerConfig
+	HTTP     *HTTPConfig
 	Database *DatabaseConfig
 	Logger   *LoggerConfig
 	JWT      *JWTConfig
@@ -86,6 +88,10 @@ func Load() (*Config, error) {
 		app = &AppConfig{Mode: ModeDev}
 	}
 
+	server, err := LoadServerConfig()
+	collect(err)
+	httpCfg, err := LoadHTTPConfig(app)
+	collect(err)
 	database, err := LoadDatabaseConfig()
 	collect(err)
 	logger, err := LoadLoggerConfig()
@@ -101,6 +107,8 @@ func Load() (*Config, error) {
 
 	return &Config{
 		App:      app,
+		Server:   server,
+		HTTP:     httpCfg,
 		Database: database,
 		Logger:   logger,
 		JWT:      jwt,
