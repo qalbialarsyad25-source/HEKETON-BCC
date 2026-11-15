@@ -21,6 +21,16 @@ func NewAnnouncementRepository(db *gorm.DB) usecase.AnnouncementRepositoryI {
 	return &AnnouncementRepository{db: db}
 }
 
+func (a *AnnouncementRepository) CreateAnnouncement(
+	ctx context.Context,
+	announcement *domain.Announcement,
+) error {
+	dbAnnouncement := mapper.ToDatabaseAnnouncement(announcement)
+
+	return gorm.G[database.Announcement](a.db).
+		Create(ctx, dbAnnouncement)
+}
+
 func (u *AnnouncementRepository) GetAnnouncement(ctx context.Context, page pagination.Pagination) ([]domain.Announcement, error) {
 	announcements, err := gorm.G[database.Announcement](u.db).
 		Order("created_at DESC").

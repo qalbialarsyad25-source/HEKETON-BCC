@@ -18,6 +18,12 @@ type AnnouncementResponse struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
+type CreateAnnouncementRequest struct {
+	Title   string    `json:"title" binding:"required"`
+	Body    string    `json:"body" binding:"required"`
+	EventID uuid.UUID `json:"eventId" binding:"required"`
+}
+
 func DomainToResponse(a domain.Announcement) *AnnouncementResponse {
 	return &AnnouncementResponse{
 		ID:        a.ID,

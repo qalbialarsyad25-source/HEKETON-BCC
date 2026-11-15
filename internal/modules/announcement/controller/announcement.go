@@ -1,4 +1,3 @@
-
 package controller
 
 import (
@@ -9,12 +8,14 @@ import (
 	"main/internal/modules/announcement/domain"
 	"main/internal/modules/announcement/usecase"
 	"main/internal/shared/pagination"
+	"main/internal/modules/announcement/dto"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
 type AnnouncementUseCaseI interface {
+	CreateAnnouncement(ctx context.Context, userID uuid.UUID, title string, body string, eventID uuid.UUID) (*domain.Announcement, error)
 	GetAnnouncement(ctx context.Context, page pagination.Pagination) ([]domain.Announcement, error)
 	GetAnnouncementById(ctx context.Context, id uuid.UUID) (*domain.Announcement, error)
 	UpdateAnnouncement(ctx context.Context, userID uuid.UUID, id uuid.UUID, input usecase.UpdateAnnouncementInput) (*domain.Announcement, error)
@@ -31,6 +32,41 @@ func NewAnnouncementController(uc AnnouncementUseCaseI) *AnnouncementController 
 
 type updateAnnouncementRequest struct {
 	Body string `json:"body" binding:"required"`
+}
+
+func (c *AnnouncementController) CreateAnnouncement(ctx *gin.Context) {
+	userID, err := getUserID(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "user tidak terautentikasi"})
+		return
+	}
+
+	var req dto.CreateAnnouncementRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	announcement, err := c.uc.CreateAnnouncement(
+		ctx.Request.Context(),
+		userID,
+		req.Title,
+		req.Body,
+		req.EventID,
+	)
+	if err != nil {
+		switch {
+		case errors.Is(err, domain.ErrAnnouncementForbidden):
+			ctx.JSON(http.StatusForbidden, gin.H{"error": "kamu bukan anggota internal event ini"})
+		default:
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "gagal membuat announcement"})
+		}
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, gin.H{
+		"data": dto.DomainToResponse(*announcement),
+	})
 }
 
 func (c *AnnouncementController) GetAnnouncement(ctx *gin.Context) {
