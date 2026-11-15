@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -123,17 +124,6 @@ func (uc UserUseCase) Create(ctx context.Context, input CreateUserInput) (*domai
 	return createdUser, nil
 }
 
-package usecase
-
-import (
-	"context"
-	"errors"
-	"fmt"
-
-	"main/internal/modules/user/domain"
-	"main/internal/shared/ports"
-)
-
 type VerifyCredentialsInput struct {
 	Email    string
 	Password string
@@ -145,13 +135,12 @@ func (uc UserUseCase) VerifyCredentials(ctx context.Context, input VerifyCredent
 		return nil, err
 	}
 
-	// A Google-only account has no password, so no password can match it.
-	if user == nil || user.PasswordHash == nil {
+	if user == nil {
 		return nil, domain.ErrInvalidCredentials
 	}
 
-	if err := uc.hasher.Compare(*user.PasswordHash, input.Password); err != nil {
-		if errors.Is(err, ports.ErrHashMismatch) {
+	if err := uc.hasher.Compare(user.Password, input.Password); err != nil {
+		if errors.Is(err, hasher.ErrHashMismatch) {
 			return nil, domain.ErrInvalidCredentials
 		}
 		return nil, fmt.Errorf("compare password: %w", err)
