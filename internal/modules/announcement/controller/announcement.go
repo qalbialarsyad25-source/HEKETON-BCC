@@ -6,9 +6,9 @@ import (
 	"net/http"
 
 	"main/internal/modules/announcement/domain"
+	"main/internal/modules/announcement/dto"
 	"main/internal/modules/announcement/usecase"
 	"main/internal/shared/pagination"
-	"main/internal/modules/announcement/dto"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
