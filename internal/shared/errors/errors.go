@@ -125,7 +125,3 @@ var (
 	ErrInvalidRequest   = BadRequest("INVALID_REQUEST", "invalid request data")
 	ErrPayloadTooLarge  = PayloadTooLarge("PAYLOAD_TOO_LARGE", "request body too large")
 )
-<<<<<<< HEAD
-
-=======
->>>>>>> e1b7eaca5166fc2d6a0e48821537df96af47ae40
