@@ -17,7 +17,7 @@ import (
 
 // UserUseCaseI is what the controller calls on the user usecase.
 type UserUseCaseI interface {
-	GetUser(ctx context.Context, page shared.Pagination) ([]domain.User, error)
+	GetUser(ctx context.Context, page pagination.Pagination) ([]domain.User, error)
 	GetUserById(ctx context.Context, id uuid.UUID) (*domain.User, error)
 	UpdateUser(ctx context.Context, id uuid.UUID, input usecase.UpdateUserInput) (*domain.User, error)
 	DeleteUser(ctx context.Context, id uuid.UUID) error

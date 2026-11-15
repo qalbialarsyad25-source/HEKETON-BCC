@@ -10,10 +10,10 @@ import (
 
 type UserRoutes struct {
 	ctrl   *controller.UserController
-	tokens ports.TokenService
+	tokens token.TokenService
 }
 
-func NewUserRoutes(ctrl *controller.UserController, tokens ports.TokenService) *UserRoutes {
+func NewUserRoutes(ctrl *controller.UserController, tokens token.TokenService) *UserRoutes {
 	return &UserRoutes{ctrl: ctrl, tokens: tokens}
 }
 

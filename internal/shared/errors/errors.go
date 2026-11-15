@@ -1,10 +1,6 @@
 package errors
 
 import (
-<<<<<<< HEAD
-	"errors"
-=======
->>>>>>> d6e0df34eff1b83e27296e51673e6aff9b81e7fe
 	"fmt"
 	"net/http"
 )
@@ -42,20 +38,11 @@ func (e *AppError) Unwrap() error {
 	return e.Err
 }
 
-<<<<<<< HEAD
-// Is reports whether target is an AppError with the same Code,
-// so errors.Is(err, domain.ErrPostNotFound) also matches wrapped copies.
-=======
->>>>>>> d6e0df34eff1b83e27296e51673e6aff9b81e7fe
 func (e *AppError) Is(target error) bool {
 	t, ok := target.(*AppError)
 	return ok && t != nil && e != nil && t.Code == e.Code
 }
 
-<<<<<<< HEAD
-// Wrap returns a copy of e with cause as Err. e itself (often a package-level sentinel) is not changed.
-=======
->>>>>>> d6e0df34eff1b83e27296e51673e6aff9b81e7fe
 func (e *AppError) Wrap(cause error) *AppError {
 	wrapped := *e
 	wrapped.Issues = append([]Issue(nil), e.Issues...)
@@ -136,11 +123,4 @@ var (
 	ErrInvalidRequest   = BadRequest("INVALID_REQUEST", "invalid request data")
 	ErrPayloadTooLarge  = PayloadTooLarge("PAYLOAD_TOO_LARGE", "request body too large")
 )
-<<<<<<< HEAD
 
-var (
-	ErrUserNotFound = errors.New("user not found")
-	ErrEmailTaken   = errors.New("email already taken")
-)
-=======
->>>>>>> d6e0df34eff1b83e27296e51673e6aff9b81e7fe
