@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"main/internal/config"
+	"main/internal/http/middleware"
 	authcontainer "main/internal/modules/auth/container"
 	eventcontainer "main/internal/modules/event/container"
 	invitationcontainer "main/internal/modules/invitation/container"
@@ -32,6 +33,9 @@ func SetupRouter(cfg *config.Config, adapters *ports.Adapters, db *gorm.DB) *gin
 	if err := router.SetTrustedProxies(cfg.HTTP.TrustedProxies); err != nil {
 		panic(fmt.Sprintf("TRUSTED_PROXIES: %v", err))
 	}
+
+	router.Use(gin.Recovery())
+	router.Use(middleware.ErrorHandler())
 
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
