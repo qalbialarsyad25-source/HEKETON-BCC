@@ -7,9 +7,7 @@ import (
 
 	"main/internal/modules/user/domain"
 	"main/internal/modules/user/usecase"
-	shared "main/internal/shared/pagination"
-	apperrors "main/internal/shared/errors"
-
+	"main/internal/shared/pagination"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -17,7 +15,7 @@ import (
 
 // UserUseCaseI is what the controller calls on the user usecase.
 type UserUseCaseI interface {
-	GetUser(ctx context.Context, page shared.Pagination) ([]domain.User, error)
+	GetUser(ctx context.Context, page pagination.Pagination) ([]domain.User, error)
 	GetUserById(ctx context.Context, id uuid.UUID) (*domain.User, error)
 	UpdateUser(ctx context.Context, id uuid.UUID, input usecase.UpdateUserInput) (*domain.User, error)
 	DeleteUser(ctx context.Context, id uuid.UUID) error
@@ -37,7 +35,7 @@ type updateUserRequest struct {
 }
 
 func (c *UserController) GetUser(ctx *gin.Context) {
-	var page shared.Pagination
+	var page pagination.Pagination
 	if err := ctx.ShouldBindQuery(&page); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "query tidak valid"})
 		return
@@ -75,7 +73,7 @@ func (c *UserController) GetUserById(ctx *gin.Context) {
 
 	user, err := c.uc.GetUserById(ctx.Request.Context(), id)
 	if err != nil {
-		if errors.Is(err, apperrors.ErrUserNotFound) {
+		if errors.Is(err, domain.ErrUserNotFound) {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "user tidak ditemukan"})
 			return
 		}
@@ -105,9 +103,9 @@ func (c *UserController) UpdateUser(ctx *gin.Context) {
 	})
 	if err != nil {
 		switch {
-		case errors.Is(err, apperrors.ErrUserNotFound):
+		case errors.Is(err, domain.ErrUserNotFound):
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "user tidak ditemukan"})
-		case errors.Is(err, apperrors.ErrEmailTaken):
+		case errors.Is(err, domain.ErrEmailTaken):
 			ctx.JSON(http.StatusConflict, gin.H{"error": "email sudah dipakai"})
 		default:
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "gagal mengubah user"})
@@ -126,7 +124,7 @@ func (c *UserController) DeleteUser(ctx *gin.Context) {
 	}
 
 	if err := c.uc.DeleteUser(ctx.Request.Context(), id); err != nil {
-		if errors.Is(err, apperrors.ErrUserNotFound) {
+		if errors.Is(err, domain.ErrUserNotFound) {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "user tidak ditemukan"})
 			return
 		}

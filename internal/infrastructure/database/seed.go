@@ -69,8 +69,9 @@ func SeedInitialData(db *gorm.DB) error {
 		joined := at(-120+2*i, 8, 0)
 		users = append(users, User{
 			ID:        seedID("user", a.key),
+			Name:      a.key,
 			Email:     a.email,
-			Password:  &password,
+			Password:  password,
 			CreatedAt: joined,
 			UpdatedAt: joined,
 		})

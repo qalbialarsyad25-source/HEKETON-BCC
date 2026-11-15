@@ -3,11 +3,9 @@ package repository
 import (
 	"context"
 	"errors"
-
 	"main/internal/modules/user/domain"
 	"main/internal/modules/user/usecase"
-	shared "main/internal/shared/pagination"
-	apperrors "main/internal/shared/errors"
+	"main/internal/shared/pagination"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -21,7 +19,7 @@ func NewUserRepository(db *gorm.DB) usecase.UserRepositoryI {
 	return &UserRepository{db: db}
 }
 
-func (u *UserRepository) GetUser(ctx context.Context, page shared.Pagination) ([]domain.User, error) {
+func (u *UserRepository) GetUser(ctx context.Context, page pagination.Pagination) ([]domain.User, error) {
 	users, err := gorm.G[domain.User](u.db).
 		Order("created_at DESC").
 		Limit(page.Limit).
@@ -40,7 +38,7 @@ func (u *UserRepository) GetUserById(ctx context.Context, id uuid.UUID) (*domain
 		First(ctx)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, apperrors.ErrUserNotFound
+			return nil, domain.ErrUserNotFound
 		}
 		return nil, err
 	}
@@ -60,7 +58,7 @@ func (u *UserRepository) DeleteUser(ctx context.Context, id uuid.UUID) error {
 		return err
 	}
 	if rows == 0 {
-		return apperrors.ErrUserNotFound
+		return domain.ErrUserNotFound
 	}
 
 	return nil
