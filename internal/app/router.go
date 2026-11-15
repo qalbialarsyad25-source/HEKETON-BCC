@@ -1,3 +1,4 @@
+
 package app
 
 import (
@@ -35,21 +36,21 @@ func SetupRouter(cfg *config.Config, adapters *ports.Adapters, db *gorm.DB) *gin
 	router.HandleMethodNotAllowed = true
 	router.RedirectTrailingSlash = false
 
-	// Turns every error a handler attaches with c.Error into a JSON response.
-	router.Use(middleware.ErrorHandler(adapters.Logger))
-
 	if err := router.SetTrustedProxies(cfg.HTTP.TrustedProxies); err != nil {
 		panic(fmt.Sprintf("TRUSTED_PROXIES: %v", err))
 	}
 
 	router.Use(gin.Recovery())
-	router.Use(middleware.ErrorHandler())
+
+	// Handles errors attached by handlers and logs them.
+	router.Use(middleware.ErrorHandler(adapters.Logger))
 
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
 
 	api := router.Group("/api/v1")
+
 	userContainer := usercontainer.NewUserContainer(db, adapters)
 	userContainer.Routes.RegisterRoutes(api)
 
