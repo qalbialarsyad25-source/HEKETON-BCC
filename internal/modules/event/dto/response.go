@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"main/internal/modules/event/domain"
-	"main/internal/modules/event/pagination"
+	"main/internal/shared/pagination"
 )
 
 type EventResponse struct {

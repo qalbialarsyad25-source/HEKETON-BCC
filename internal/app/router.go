@@ -6,7 +6,8 @@ import (
 
 	"main/internal/config"
 	authcontainer "main/internal/modules/auth/container"
-	"main/internal/modules/user/container"
+	invitationcontainer "main/internal/modules/invitation/container"
+	usercontainer "main/internal/modules/user/container"
 	"main/internal/shared/ports"
 
 	"github.com/gin-gonic/gin"
@@ -36,11 +37,14 @@ func SetupRouter(cfg *config.Config, adapters *ports.Adapters, db *gorm.DB) *gin
 	})
 
 	api := router.Group("/api/v1")
-	userContainer := container.NewUserContainer(db, adapters)
+	userContainer := usercontainer.NewUserContainer(db, adapters)
 	userContainer.Routes.RegisterRoutes(api)
 
 	authContainer := authcontainer.NewAuthContainer(db, adapters, cfg, userContainer.UseCase)
 	authContainer.Routes.RegisterRoutes(api)
+
+	sessionContainer := invitationcontainer.NewInvitationContainer(db, adapters)
+	sessionContainer.Routes.RegisterRoutes(api)
 
 	router.NoRoute(func(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "route not found"})
