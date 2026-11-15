@@ -9,7 +9,6 @@ import (
 	"main/internal/modules/auth/domain"
 	userdomain "main/internal/modules/user/domain"
 	userusecase "main/internal/modules/user/usecase"
-	"main/internal/shared/authz"
 	"main/internal/shared/ports/token"
 
 	"github.com/google/uuid"
@@ -75,7 +74,6 @@ func (uc AuthUseCase) Register(ctx context.Context, input RegisterInput) (*domai
 		Name:     input.Name,
 		Email:    input.Email,
 		Password: input.Password,
-		Role:     authz.RoleUser,
 	})
 	if err != nil {
 		return nil, err

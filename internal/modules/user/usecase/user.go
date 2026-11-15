@@ -72,7 +72,6 @@ type CreateUserInput struct {
 	Name     string
 	Email    string
 	Password string
-	Role     string
 }
 
 // MaxPasswordBytes is the longest password bcrypt accepts.
