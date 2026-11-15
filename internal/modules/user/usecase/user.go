@@ -30,7 +30,7 @@ type UserUseCase struct {
 }
 
 func NewUserUseCase(repo UserRepositoryI, hasher hasher.Hasher) UserUseCase {
-	return UserUseCase{repo: repo}
+	return UserUseCase{repo: repo, hasher: hasher}
 }
 
 type UpdateUserInput struct {
