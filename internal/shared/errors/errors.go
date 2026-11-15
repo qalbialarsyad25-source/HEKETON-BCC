@@ -38,6 +38,8 @@ func (e *AppError) Unwrap() error {
 	return e.Err
 }
 
+// Is reports whether target is an AppError with the same Code,
+// so errors.Is(err, domain.ErrPostNotFound) also matches wrapped copies.
 func (e *AppError) Is(target error) bool {
 	t, ok := target.(*AppError)
 	return ok && t != nil && e != nil && t.Code == e.Code
@@ -123,4 +125,7 @@ var (
 	ErrInvalidRequest   = BadRequest("INVALID_REQUEST", "invalid request data")
 	ErrPayloadTooLarge  = PayloadTooLarge("PAYLOAD_TOO_LARGE", "request body too large")
 )
+<<<<<<< HEAD
 
+=======
+>>>>>>> e1b7eaca5166fc2d6a0e48821537df96af47ae40

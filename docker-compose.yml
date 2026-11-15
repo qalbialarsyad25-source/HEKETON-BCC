@@ -1,6 +1,6 @@
 services:
     app:
-        image: ghcr.io/${IMAGE_NAME:-local/go-starter}:${IMAGE_TAG:-latest}
+        image: ghcr.io/${IMAGE_NAME:-local/event-ops}:${IMAGE_TAG:-latest}
         pull_policy: missing
         build: .
         container_name: event-ops-app
@@ -27,7 +27,7 @@ services:
 
     postgres:
         image: postgres:17-alpine
-        container_name: ${APP_NAME:-go-starter}-postgres
+        container_name: event-ops-postgres
         restart: unless-stopped
         environment:
             POSTGRES_USER: ${DB_USER:-postgres}

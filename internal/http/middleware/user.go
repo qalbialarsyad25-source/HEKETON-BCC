@@ -8,18 +8,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// UserKey is the gin context key holding the *ports.JWTPayload stored by Authenticate.
 const UserKey = "user"
 
 // GetJWTPayload returns the payload stored by Authenticate, or ErrUnauthorized when
 // the route isn't behind Authenticate.
-func GetJWTPayload(c *gin.Context) (*ports.JWTPayload, error) {
+func GetJWTPayload(c *gin.Context) (*token.JWTPayload, error) {
 	value, exist := c.Get(UserKey)
 	if !exist {
 		return nil, apperrors.ErrUnauthorized
 	}
 
-	user, ok := value.(*ports.JWTPayload)
+	user, ok := value.(*token.JWTPayload)
 
 	if !ok || user == nil {
 		return nil, apperrors.ErrUnauthorized

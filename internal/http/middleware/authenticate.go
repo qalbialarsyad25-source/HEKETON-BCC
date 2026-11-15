@@ -12,7 +12,7 @@ import (
 // Authenticate requires "Authorization: Bearer <access token>" and stores the token's payload
 // under UserKey (read it with GetJWTPayload). A missing or malformed header is UNAUTHORIZED,
 // a bad token INVALID_TOKEN or TOKEN_EXPIRED; all are 401s rendered by ErrorHandler.
-func Authenticate(tokens ports.TokenService) gin.HandlerFunc {
+func Authenticate(tokens token.TokenService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		accessToken, ok := bearerToken(c.GetHeader("Authorization"))
 		if !ok {
