@@ -18,7 +18,6 @@ import (
 
 // ownedTables are emptied before every test. Add each new table here.
 var ownedTables = []string{
-	"posts",
 	"refresh_tokens",
 	"announcements",
 	"invitations",
