@@ -6,6 +6,7 @@ import (
 
 	"main/internal/config"
 	authcontainer "main/internal/modules/auth/container"
+	eventcontainer "main/internal/modules/event/container"
 	invitationcontainer "main/internal/modules/invitation/container"
 	usercontainer "main/internal/modules/user/container"
 	"main/internal/shared/ports"
@@ -42,6 +43,9 @@ func SetupRouter(cfg *config.Config, adapters *ports.Adapters, db *gorm.DB) *gin
 
 	authContainer := authcontainer.NewAuthContainer(db, adapters, cfg, userContainer.UseCase)
 	authContainer.Routes.RegisterRoutes(api)
+
+	eventContainer := eventcontainer.NewEventContainer(db, adapters)
+	eventContainer.Routes.RegisterRoutes(api)
 
 	sessionContainer := invitationcontainer.NewInvitationContainer(db, adapters)
 	sessionContainer.Routes.RegisterRoutes(api)
