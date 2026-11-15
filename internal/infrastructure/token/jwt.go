@@ -66,7 +66,6 @@ func generate(data *token.JWTPayload, tokenType string, secret []byte, ttl time.
 	payload := token.JWTPayload{
 		JTI:    uuid.New(),
 		UserID: data.UserID,
-		Role:   data.Role,
 		Name:   data.Name,
 	}
 
