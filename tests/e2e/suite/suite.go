@@ -75,7 +75,7 @@ func New(t *testing.T) *Suite {
 	truncateTables(t, db)
 
 	return &Suite{
-		Router:   app.SetupRouter(cfg, db),
+		Router:   app.SetupRouter(cfg, adapters, db),
 		Adapters: adapters,
 		DB:       db,
 		Config:   cfg,
