@@ -15,10 +15,10 @@ import (
 
 // UserUseCaseI is what the controller calls on the user usecase.
 type UserUseCaseI interface {
-	GetUser(ctx context.Context, page pagination.Pagination) ([]domain.User, error)
-	GetUserById(ctx context.Context, id uuid.UUID) (*domain.User, error)
-	UpdateUser(ctx context.Context, id uuid.UUID, input usecase.UpdateUserInput) (*domain.User, error)
-	DeleteUser(ctx context.Context, id uuid.UUID) error
+	List(ctx context.Context, page pagination.Pagination) (*[]domain.User, int, error)
+	GetByID(ctx context.Context, id uuid.UUID) (*domain.User, error)
+	Update(ctx context.Context, id uuid.UUID, input usecase.UpdateUserInput) (*domain.User, error)
+	Delete(ctx context.Context, id uuid.UUID) error
 }
 
 type UserController struct {
@@ -34,7 +34,7 @@ type updateUserRequest struct {
 	Email string `json:"email" binding:"required,email"`
 }
 
-func (c *UserController) GetUser(ctx *gin.Context) {
+func (c *UserController) List(ctx *gin.Context) {
 	var page pagination.Pagination
 	if err := ctx.ShouldBindQuery(&page); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "query tidak valid"})
@@ -52,26 +52,28 @@ func (c *UserController) GetUser(ctx *gin.Context) {
 	}
 	page.Offset = (page.Page - 1) * page.Limit
 
-	users, err := c.uc.GetUser(ctx.Request.Context(), page)
+	users, total, err := c.uc.List(ctx.Request.Context(), page)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "gagal mengambil data user"})
 		return
 	}
 
+	paginationMeta := pagination.GetPaginationResponse(page, total)
+
 	ctx.JSON(http.StatusOK, gin.H{
 		"data": users,
-		"meta": gin.H{"page": page.Page, "limit": page.Limit},
+		"meta": gin.H{"pagination": paginationMeta},
 	})
 }
 
-func (c *UserController) GetUserById(ctx *gin.Context) {
+func (c *UserController) GetByID(ctx *gin.Context) {
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "id harus berupa UUID"})
 		return
 	}
 
-	user, err := c.uc.GetUserById(ctx.Request.Context(), id)
+	user, err := c.uc.GetByID(ctx.Request.Context(), id)
 	if err != nil {
 		if errors.Is(err, domain.ErrUserNotFound) {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "user tidak ditemukan"})
@@ -84,7 +86,7 @@ func (c *UserController) GetUserById(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"data": user})
 }
 
-func (c *UserController) UpdateUser(ctx *gin.Context) {
+func (c *UserController) Update(ctx *gin.Context) {
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "id harus berupa UUID"})
@@ -97,7 +99,7 @@ func (c *UserController) UpdateUser(ctx *gin.Context) {
 		return
 	}
 
-	user, err := c.uc.UpdateUser(ctx.Request.Context(), id, usecase.UpdateUserInput{
+	user, err := c.uc.Update(ctx.Request.Context(), id, usecase.UpdateUserInput{
 		Name:  req.Name,
 		Email: req.Email,
 	})
@@ -116,14 +118,14 @@ func (c *UserController) UpdateUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"data": user})
 }
 
-func (c *UserController) DeleteUser(ctx *gin.Context) {
+func (c *UserController) Delete(ctx *gin.Context) {
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "id harus berupa UUID"})
 		return
 	}
 
-	if err := c.uc.DeleteUser(ctx.Request.Context(), id); err != nil {
+	if err := c.uc.Delete(ctx.Request.Context(), id); err != nil {
 		if errors.Is(err, domain.ErrUserNotFound) {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "user tidak ditemukan"})
 			return

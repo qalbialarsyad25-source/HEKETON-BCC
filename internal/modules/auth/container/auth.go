@@ -22,11 +22,8 @@ func NewAuthContainer(db *gorm.DB, adapters *ports.Adapters, cfg *config.Config,
 	ctrl := controller.NewAuthController(uc, controller.CookieOptions{
 		Domain: cfg.HTTP.CookieDomain,
 		Secure: cfg.HTTP.CookieSecure,
-	}, controller.OAuthRedirects{
-		Success: cfg.OAuth.SuccessRedirect,
-		Failure: cfg.OAuth.FailureRedirect,
 	})
-	r := routes.NewAuthRoutes(ctrl, adapters.Cache, adapters.Logger, cfg.RateLimit)
+	r := routes.NewAuthRoutes(ctrl, adapters.Logger)
 
 	return &AuthContainer{
 		UseCase: uc,

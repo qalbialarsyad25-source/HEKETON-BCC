@@ -59,7 +59,7 @@ func run() error {
 
 	logger.Info("application starting", slog.String("mode", cfg.App.Mode))
 
-	router := app.SetupRouter(cfg, db)
+	router := app.SetupRouter(cfg, adapters, db)
 
 	srv := &http.Server{
 		Addr:              ":" + cfg.Server.Port,
