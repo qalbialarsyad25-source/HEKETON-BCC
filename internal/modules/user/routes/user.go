@@ -24,9 +24,9 @@ func (r UserRoutes) RegisterRoutes(rg *gin.RouterGroup) {
 	router.GET(
 		"",
 		middleware.HandlePagination(10, 100),
-		r.ctrl.GetUser,
+		r.ctrl.List,
 	)
-	router.GET("/:id", r.ctrl.GetUserById)
-	router.PUT("/:id", r.ctrl.UpdateUser)
-	router.DELETE("/:id", r.ctrl.DeleteUser)
+	router.GET("/:id", r.ctrl.GetByID)
+	router.PUT("/:id", r.ctrl.Update)
+	router.DELETE("/:id", r.ctrl.Delete)
 }

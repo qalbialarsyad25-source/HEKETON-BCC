@@ -46,7 +46,7 @@ func (uc UserUseCase) List(ctx context.Context, page shared.Pagination) (*[]doma
 	return uc.repo.List(ctx, page)
 }
 
-func (uc UserUseCase) GetById(ctx context.Context, id uuid.UUID) (*domain.User, error) {
+func (uc UserUseCase) GetByID(ctx context.Context, id uuid.UUID) (*domain.User, error) {
 	return uc.repo.GetByID(ctx, id)
 }
 
