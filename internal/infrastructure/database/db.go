@@ -90,6 +90,7 @@ func Migrate(db *gorm.DB) error {
 			&Registration{},
 			&Committee{},
 			&Session{},
+			&RefreshToken{},
 		)
 	})
 }
