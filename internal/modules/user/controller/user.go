@@ -3,11 +3,13 @@ package controller
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"main/internal/modules/user/domain"
 	"main/internal/modules/user/usecase"
 	"main/internal/shared/pagination"
+	"main/internal/modules/user/dto"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -63,6 +65,35 @@ func (c *UserController) List(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"data": users,
 		"meta": gin.H{"pagination": paginationMeta},
+	})
+}
+
+func (c *UserController) GetMe(ctx *gin.Context) {
+	// Pastikan key "user_id" ini sama dengan yang di-set di middleware.Authenticate
+	rawID, exists := ctx.Get("user_id")
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	userID, err := uuid.Parse(fmt.Sprint(rawID))
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "invalid user id in token"})
+		return
+	}
+
+	user, err := c.uc.GetByID(ctx.Request.Context(), userID)
+	if err != nil {
+		if errors.Is(err, domain.ErrUserNotFound) {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "user tidak ditemukan"})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "gagal mengambil data user"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"data": dto.DomainToResponse(*user),
 	})
 }
 
