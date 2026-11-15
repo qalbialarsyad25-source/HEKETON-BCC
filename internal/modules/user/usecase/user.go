@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"main/internal/modules/user/domain"
-	"main/internal/shared/authz"
 	"main/internal/shared/pagination"
 	"main/internal/shared/ports/hasher"
 
@@ -101,11 +100,6 @@ func (uc UserUseCase) Create(ctx context.Context, input CreateUserInput) (*domai
 	hashedPassword, err := uc.hasher.Hash(input.Password)
 	if err != nil {
 		return nil, fmt.Errorf("hash password: %w", err)
-	}
-
-	role := input.Role
-	if role == "" {
-		role = authz.RoleUser
 	}
 
 	newUser := domain.User{
