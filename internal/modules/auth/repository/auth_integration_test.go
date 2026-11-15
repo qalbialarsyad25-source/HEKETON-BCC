@@ -1,5 +1,3 @@
-//go:build integration
-
 package repository_test
 
 import (
@@ -34,7 +32,7 @@ func openDB(t *testing.T) *gorm.DB {
 func insertUser(t *testing.T, db *gorm.DB) uuid.UUID {
 	t.Helper()
 	id := uuid.New()
-	user := &database.User{ID: id, Name: "auth repo", Email: fmt.Sprintf("auth-repo-%s@example.com", id), Role: "user"}
+	user := &database.User{ID: id, Name: "auth repo", Email: fmt.Sprintf("auth-repo-%s@example.com", id)}
 	require.NoError(t, db.Create(user).Error)
 	t.Cleanup(func() { db.Delete(&database.User{}, "id = ?", id) })
 	return id

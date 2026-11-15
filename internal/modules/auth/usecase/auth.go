@@ -35,24 +35,16 @@ type UserService interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*userdomain.User, error)
 }
 
-// StateStore keeps the OAuth state between the redirect to Google and the callback.
-// token.Cache satisfies it; GetDel makes each state single-use.
-type StateStore interface {
-	Set(ctx context.Context, key string, value string, ttl time.Duration) error
-	GetDel(ctx context.Context, key string) (value string, found bool, err error)
-}
-
 type AuthUseCase struct {
 	repo   AuthRepositoryI
 	users  UserService
 	tokens token.TokenService
-	states StateStore
 }
 
 // NewAuthUseCase builds the usecase. oauth may be nil: the Google methods then return
 // domain.ErrOAuthDisabled.
-func NewAuthUseCase(repo AuthRepositoryI, users UserService, tokens token.TokenService, states StateStore) *AuthUseCase {
-	return &AuthUseCase{repo: repo, users: users, tokens: tokens, states: states}
+func NewAuthUseCase(repo AuthRepositoryI, users UserService, tokens token.TokenService) *AuthUseCase {
+	return &AuthUseCase{repo: repo, users: users, tokens: tokens}
 }
 
 type LoginInput struct {

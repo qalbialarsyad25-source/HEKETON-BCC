@@ -16,12 +16,9 @@ type AuthContainer struct {
 	Routes  *routes.AuthRoutes
 }
 
-// NewAuthContainer builds the auth module. users is the user module's usecase: auth reaches
-// the users table only through it. adapters.OAuth may be nil (Google sign-in off); tests put
-// a fake provider there.
 func NewAuthContainer(db *gorm.DB, adapters *ports.Adapters, cfg *config.Config, users usecase.UserService) *AuthContainer {
 	repo := repository.NewAuthRepository(db)
-	uc := usecase.NewAuthUseCase(repo, users, adapters.TokenService, adapters.OAuth, adapters.Cache)
+	uc := usecase.NewAuthUseCase(repo, users, adapters.TokenService)
 	ctrl := controller.NewAuthController(uc, controller.CookieOptions{
 		Domain: cfg.HTTP.CookieDomain,
 		Secure: cfg.HTTP.CookieSecure,

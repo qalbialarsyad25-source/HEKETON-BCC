@@ -116,6 +116,16 @@ type Session struct {
 	Event Event `gorm:"foreignKey:EventID;constraint:OnDelete:CASCADE"`
 }
 
+type RefreshToken struct {
+	ID        uuid.UUID `gorm:"type:uuid;primaryKey"`
+	UserID    uuid.UUID `gorm:"type:uuid;not null;index"`
+	ExpiresAt time.Time `gorm:"not null"`
+	RevokedAt *time.Time
+	CreatedAt time.Time `gorm:"autoCreateTime;default:CURRENT_TIMESTAMP"`
+	UpdatedAt time.Time `gorm:"autoUpdateTime;default:CURRENT_TIMESTAMP"`
+	User      User      `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
+}
+
 func Models() []any {
 	return []any{
 		&User{},
@@ -125,5 +135,6 @@ func Models() []any {
 		&Registration{},
 		&Committee{},
 		&Session{},
+		&RefreshToken{},
 	}
 }

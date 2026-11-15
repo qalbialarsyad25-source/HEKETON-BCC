@@ -25,20 +25,13 @@ type AuthUseCaseI interface {
 	Logout(ctx context.Context, input usecase.LogoutInput) error
 }
 
-// OAuthRedirects are the frontend pages the Google callback sends the browser to.
-type OAuthRedirects struct {
-	Success string
-	Failure string // ?error=<code> is added
-}
-
 type AuthController struct {
-	uc        AuthUseCaseI
-	cookie    CookieOptions
-	redirects OAuthRedirects
+	uc     AuthUseCaseI
+	cookie CookieOptions
 }
 
-func NewAuthController(uc AuthUseCaseI, cookie CookieOptions, redirects OAuthRedirects) *AuthController {
-	return &AuthController{uc: uc, cookie: cookie, redirects: redirects}
+func NewAuthController(uc AuthUseCaseI, cookie CookieOptions) *AuthController {
+	return &AuthController{uc: uc, cookie: cookie}
 }
 
 func (ctrl AuthController) Register(c *gin.Context) {
