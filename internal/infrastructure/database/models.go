@@ -31,8 +31,8 @@ const (
 type User struct {
 	ID        uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 	Email     string    `gorm:"not null;uniqueIndex:idx_users_email"`
-	Name      string    `gorm:"not null;`
-	Password  string    `gorm:"not null;`
+	Name      string    `gorm:"not null"`
+	Password  string    `gorm:"not null"`
 	CreatedAt time.Time `gorm:"autoCreateTime;default:CURRENT_TIMESTAMP"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime;default:CURRENT_TIMESTAMP"`
 }
